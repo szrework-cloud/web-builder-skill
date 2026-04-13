@@ -132,6 +132,9 @@ The hero section MUST use a real photo from the business as a full-width backgro
   services.html
   contact.html
   [additional-pages].html
+  robots.txt
+  sitemap.xml
+  favicon.svg           (generated: text-based SVG using brand accent color + first letter)
   css/
     style.css
     animations.css
@@ -140,9 +143,12 @@ The hero section MUST use a real photo from the business as a full-width backgro
     navigation.js
   images/
     hero.jpg          (downloaded from business site)
+    hero.webp         (converted from jpg for performance)
     logo.png          (downloaded from business site)
     project1.jpg      (downloaded from business site)
+    project1.webp     (converted)
     ...
+  GUIDE-EMAIL.md
 ```
 
 **Technical requirements:**
@@ -154,11 +160,79 @@ The hero section MUST use a real photo from the business as a full-width backgro
 - Scroll-triggered animations (intersection observer)
 - Contact form with client-side validation
 - Google Maps embed (if address available)
-- SEO meta tags (title, description, Open Graph)
-- GEO optimization (structured data, schema.org markup, clear content hierarchy) so the business is referenced by AI search engines (ChatGPT, Perplexity, Gemini) in addition to Google
 - CSS variables for easy theme customization
 - Semantic HTML with proper heading hierarchy
 - ARIA labels on interactive elements
+
+**SEO & GEO (MANDATORY — generate ALL of these):**
+
+- `<title>` unique par page, optimisé mots-clés + localisation (ex: "Maçon Kindwiller — Wabartha BTP")
+- `<meta name="description">` unique par page (150-160 chars)
+- Open Graph tags (`og:title`, `og:description`, `og:image`, `og:type`)
+- `<link rel="canonical">` sur chaque page
+- Schema.org `LocalBusiness` JSON-LD dans le `<head>` de `index.html` (name, telephone, address, geo, areaServed, aggregateRating, sameAs)
+- Heading hierarchy propre : un seul H1 par page, H2 pour sections, H3 pour sous-sections
+- `alt` descriptif sur TOUTES les images (pas de alt vide)
+- `robots.txt` — autoriser tout, pointer vers le sitemap
+- `sitemap.xml` — lister toutes les pages avec `<lastmod>` et `<priority>`
+
+```xml
+<!-- robots.txt -->
+User-agent: *
+Allow: /
+Sitemap: https://www.DOMAIN.com/sitemap.xml
+```
+
+```xml
+<!-- sitemap.xml -->
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.DOMAIN.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://www.DOMAIN.com/services.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.DOMAIN.com/realisations.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.DOMAIN.com/about.html</loc><priority>0.6</priority></url>
+  <url><loc>https://www.DOMAIN.com/contact.html</loc><priority>0.8</priority></url>
+</urlset>
+```
+
+Replace DOMAIN.com with the actual business domain. If unknown, use a placeholder with a comment.
+
+**Favicon (MANDATORY):**
+
+Generate an SVG favicon using the brand accent color and the first letter of the business name:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="12" fill="ACCENT_COLOR"/>
+  <text x="50" y="68" font-family="sans-serif" font-size="60" font-weight="800"
+        fill="white" text-anchor="middle">X</text>
+</svg>
+```
+
+Link it in every HTML page: `<link rel="icon" type="image/svg+xml" href="favicon.svg">`
+
+**Image optimization (MANDATORY):**
+
+After downloading all images, convert them to WebP using `cwebp` or `sips`:
+
+```bash
+# Try cwebp first (better quality), fallback to sips (macOS built-in)
+for img in images/*.jpg images/*.png; do
+  cwebp -q 80 "$img" -o "${img%.*}.webp" 2>/dev/null || \
+  sips -s format png "$img" --out "${img%.*}.webp" 2>/dev/null
+done
+```
+
+In HTML, use `<picture>` tags with WebP + JPG fallback:
+
+```html
+<picture>
+  <source srcset="images/hero.webp" type="image/webp">
+  <img src="images/hero.jpg" alt="Description" loading="lazy">
+</picture>
+```
+
+If neither `cwebp` nor `sips` is available, skip WebP conversion and use JPG directly — do NOT block on this.
 
 **Design quality standards:**
 
