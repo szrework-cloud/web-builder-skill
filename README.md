@@ -96,7 +96,8 @@ mon-entreprise-website/
 ## Prerequis
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installe
-- Modele minimum : Claude Sonnet (configure automatiquement dans le skill)
+- Modele : Claude Opus (configure automatiquement dans le skill)
+- Skill recommande : `ui-ux-pro-max` (pour palettes, typos et guidelines UX avancees)
 
 ## License
 

@@ -1,6 +1,6 @@
 ---
 name: web-builder
-model: sonnet
+model: opus
 description: "Generate professional, multi-page websites for real businesses. This skill should be used when the user provides a business context (Google page URL, business name, industry) and wants a complete website generated. Extracts business information, downloads real photos and logos, applies the ACTUAL brand colors from the existing site, and produces a full multi-page HTML/CSS/JS website with agency-level quality. Triggers on: 'create a website for', 'build a site for', 'generate a website', 'web-builder', or any request to create a business website from a Google listing or business description."
 ---
 
@@ -57,6 +57,8 @@ Determine pages based on the business type. Refer to `references/page-structures
 Proceed directly to design and implementation — do NOT pause for user validation.
 
 ### Phase 3: Design Direction
+
+**Use the `ui-ux-pro-max` skill** to inform all design decisions: color palettes, font pairings, UX guidelines, spacing systems, and interaction patterns. Invoke it with `/ui-ux-pro-max` for palette selection, typography, and component styling when needed.
 
 **CRITICAL RULE: Match the design tone to the industry. Do NOT default to a generic "elegant" aesthetic.**
 
