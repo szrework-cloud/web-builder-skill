@@ -1,12 +1,12 @@
 ---
 name: web-builder
 model: opus
-description: "Generate professional, multi-page websites for real businesses. This skill should be used when the user provides a business context (Google page URL, business name, industry) and wants a complete website generated. Extracts business information, downloads real photos and logos, applies the ACTUAL brand colors from the existing site, and produces a full multi-page HTML/CSS/JS website with agency-level quality. Triggers on: 'create a website for', 'build a site for', 'generate a website', 'web-builder', or any request to create a business website from a Google listing or business description."
+description: "Generate professional, multi-page Next.js websites for real businesses. This skill should be used when the user provides a business context (Google page URL, business name, industry) and wants a complete website generated. Extracts business information, downloads real photos and logos, applies the ACTUAL brand colors from the existing site, and produces a full Next.js (App Router) website with TypeScript, Tailwind CSS, SSG, built-in SEO/GEO, and agency-level quality. Triggers on: 'create a website for', 'build a site for', 'generate a website', 'web-builder', or any request to create a business website from a Google listing or business description."
 ---
 
-# Web Builder
+# Web Builder (Next.js)
 
-Generate professional, multi-page business websites that look like they were built by a web agency. Accept a business website URL, Google Business page, or business description as input, extract all relevant information, and produce a complete, polished, responsive website.
+Generate professional, multi-page business websites using **Next.js 15 (App Router)** with TypeScript and Tailwind CSS. Accept a business website URL, Google Business page, or business description as input, extract all relevant information, and produce a complete, polished, responsive, SEO-optimized website ready for Vercel deployment.
 
 ## Workflow
 
@@ -22,7 +22,7 @@ If a website URL is provided, fetch it to extract:
 
 **Step 2 - Download all assets:**
 
-Download to `images/` directory using curl:
+Download to `public/images/` directory using curl:
 - Logo file
 - Project/portfolio photos
 - Partner logos
@@ -42,17 +42,17 @@ If only a Google Business page or description is provided:
 Determine pages based on the business type. Refer to `references/page-structures.md` for detailed page structures per industry.
 
 **Standard pages (always include):**
-1. **Accueil** (Homepage) - Hero, services overview, testimonials, CTA
-2. **A propos** (About) - Story, team, values
-3. **Services** (Services) - Detailed service offerings
-4. **Contact** - Form, map, phone, hours
+1. **Accueil** (Homepage) `/` - Hero, services overview, testimonials, CTA
+2. **A propos** (About) `/a-propos` - Story, team, values
+3. **Services** (Services) `/services` - Detailed service offerings
+4. **Contact** `/contact` - Form, map, phone, hours
 
 **Optional pages (based on industry):**
-- **Realisations / Portfolio** - For artisans, construction, agencies, photographers
-- **Menu / Carte** - For restaurants, bars, cafes
-- **Tarifs** - For services with pricing
-- **Blog / Actualites** - If the business has content to showcase
-- **FAQ** - For businesses with common questions
+- **Realisations / Portfolio** `/realisations` - For artisans, construction, agencies, photographers
+- **Menu / Carte** `/menu` - For restaurants, bars, cafes
+- **Tarifs** `/tarifs` - For services with pricing
+- **Blog / Actualites** `/blog` - If the business has content to showcase
+- **FAQ** `/faq` - For businesses with common questions
 
 Proceed directly to design and implementation — do NOT pause for user validation.
 
@@ -95,31 +95,58 @@ Proceed directly to design and implementation — do NOT pause for user validati
 | Real Estate | `#1E293B` | `#059669` (emerald) | `#0F172A` | `#F0FDF4` |
 | Education | `#1E293B` | `#7C3AED` (purple) | `#0F172A` | `#FAF5FF` |
 
-Define all colors as CSS custom properties. Ensure 4.5:1 contrast ratio minimum.
+Colors are defined as CSS variables in `tailwind.config.ts` and `globals.css`. Ensure 4.5:1 contrast ratio minimum.
 
 **Typography:**
+- Use Google Fonts via `next/font/google` (automatic optimization, no CLS)
 - One font family is fine (e.g., DM Sans for both display and body)
 - Weight and size create hierarchy, not font pairing
 - NEVER use Inter, Roboto, Arial, or system fonts
 
 ### Phase 4: Implementation
 
+**Tech stack:**
+- **Next.js 15** (App Router, `output: 'export'` for static export)
+- **TypeScript** (strict mode)
+- **Tailwind CSS 4** (utility-first)
+- **next/image** (automatic optimization, WebP/AVIF, lazy loading)
+- **next/font** (zero CLS Google Fonts)
+- **Framer Motion** (scroll animations, page transitions)
+
+**Initialize the project:**
+
+```bash
+npx create-next-app@latest {business-name}-website --typescript --tailwind --app --src-dir --no-eslint --no-import-alias
+cd {business-name}-website
+npm install framer-motion
+```
+
+Then replace generated files with the custom implementation.
+
 **Homepage hero: ALWAYS full-screen photo background**
 
-The hero section MUST use a real photo from the business as a full-width background image with a dark gradient overlay for text readability. Never use split layouts with solid color panels or abstract geometric shapes.
+The hero section MUST use a real photo from the business as a full-width background with a dark gradient overlay for text readability. Use `next/image` with `fill` and `priority`:
 
-```css
-/* Correct hero pattern */
-.hero {
-  min-height: 100vh;
-  background: url('images/hero.jpg') center/cover no-repeat;
-  position: relative;
-}
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, rgba(X,X,X,0.9) 0%, rgba(X,X,X,0.4) 100%);
+```tsx
+import Image from 'next/image'
+
+function Hero() {
+  return (
+    <section className="relative min-h-screen flex items-center">
+      <Image
+        src="/images/hero.jpg"
+        alt="Description"
+        fill
+        className="object-cover"
+        priority
+        quality={85}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-black/40" />
+      <div className="relative z-10 container mx-auto px-6">
+        <h1 className="text-5xl font-bold text-white">...</h1>
+      </div>
+    </section>
+  )
 }
 ```
 
@@ -127,75 +154,156 @@ The hero section MUST use a real photo from the business as a full-width backgro
 
 ```
 {business-name}-website/
-  index.html
-  about.html
-  services.html
-  contact.html
-  [additional-pages].html
-  robots.txt
-  sitemap.xml
-  favicon.svg           (generated: text-based SVG using brand accent color + first letter)
-  css/
-    style.css
-    animations.css
-  js/
-    main.js
-    navigation.js
-  images/
-    hero.jpg          (downloaded from business site)
-    hero.webp         (converted from jpg for performance)
-    logo.png          (downloaded from business site)
-    project1.jpg      (downloaded from business site)
-    project1.webp     (converted)
-    ...
-  GUIDE-EMAIL.md
+  next.config.ts
+  tailwind.config.ts
+  tsconfig.json
+  package.json
+  public/
+    images/
+      hero.jpg            (downloaded from business site)
+      logo.png            (downloaded from business site)
+      project1.jpg        (downloaded from business site)
+      ...
+    favicon.svg           (generated: text-based SVG using brand accent color + first letter)
+  src/
+    app/
+      layout.tsx          (root layout: fonts, metadata, navbar, footer)
+      page.tsx            (homepage)
+      a-propos/
+        page.tsx
+      services/
+        page.tsx
+      contact/
+        page.tsx
+      [additional-pages]/
+        page.tsx
+      robots.ts           (generated robots.txt)
+      sitemap.ts          (generated sitemap.xml)
+      not-found.tsx       (custom 404)
+    components/
+      navbar.tsx          (sticky, blur, mobile menu)
+      footer.tsx
+      hero.tsx
+      section-heading.tsx
+      contact-form.tsx
+      scroll-reveal.tsx   (framer motion wrapper)
+      [page-specific components]
+    lib/
+      constants.ts        (business info: name, address, phone, hours, etc.)
+  GUIDE-DEPLOY.md
 ```
 
-**Technical requirements:**
+**SEO & Metadata (MANDATORY — Next.js native):**
 
-- Pure HTML5 / CSS3 / Vanilla JS (no frameworks, no build step)
-- Fully responsive (mobile-first approach)
-- Mobile hamburger menu with slide-in animation
-- Sticky navbar with backdrop blur on scroll
-- Scroll-triggered animations (intersection observer)
-- Contact form with client-side validation
-- Google Maps embed (if address available)
-- CSS variables for easy theme customization
-- Semantic HTML with proper heading hierarchy
-- ARIA labels on interactive elements
+Every page exports metadata using Next.js `generateMetadata` or static `metadata`:
 
-**SEO & GEO (MANDATORY — generate ALL of these):**
+```tsx
+// src/app/layout.tsx
+import type { Metadata } from 'next'
 
-- `<title>` unique par page, optimisé mots-clés + localisation (ex: "Maçon Kindwiller — Wabartha BTP")
-- `<meta name="description">` unique par page (150-160 chars)
-- Open Graph tags (`og:title`, `og:description`, `og:image`, `og:type`)
-- `<link rel="canonical">` sur chaque page
-- Schema.org `LocalBusiness` JSON-LD dans le `<head>` de `index.html` (name, telephone, address, geo, areaServed, aggregateRating, sameAs)
-- Heading hierarchy propre : un seul H1 par page, H2 pour sections, H3 pour sous-sections
-- `alt` descriptif sur TOUTES les images (pas de alt vide)
-- `robots.txt` — autoriser tout, pointer vers le sitemap
-- `sitemap.xml` — lister toutes les pages avec `<lastmod>` et `<priority>`
-
-```xml
-<!-- robots.txt -->
-User-agent: *
-Allow: /
-Sitemap: https://www.DOMAIN.com/sitemap.xml
+export const metadata: Metadata = {
+  metadataBase: new URL('https://www.DOMAIN.com'),
+  title: {
+    default: 'Business Name — Tagline + Location',
+    template: '%s | Business Name',
+  },
+  description: 'Main site description (150-160 chars)',
+  openGraph: {
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'Business Name',
+    images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+  },
+  alternates: {
+    canonical: 'https://www.DOMAIN.com',
+  },
+}
 ```
 
-```xml
-<!-- sitemap.xml -->
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.DOMAIN.com/</loc><priority>1.0</priority></url>
-  <url><loc>https://www.DOMAIN.com/services.html</loc><priority>0.8</priority></url>
-  <url><loc>https://www.DOMAIN.com/realisations.html</loc><priority>0.7</priority></url>
-  <url><loc>https://www.DOMAIN.com/about.html</loc><priority>0.6</priority></url>
-  <url><loc>https://www.DOMAIN.com/contact.html</loc><priority>0.8</priority></url>
-</urlset>
+```tsx
+// src/app/services/page.tsx
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Nos Services',
+  description: 'Page-specific description (150-160 chars)',
+  alternates: {
+    canonical: 'https://www.DOMAIN.com/services',
+  },
+}
 ```
 
-Replace DOMAIN.com with the actual business domain. If unknown, use a placeholder with a comment.
+**robots.ts (MANDATORY):**
+
+```tsx
+// src/app/robots.ts
+import type { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: { userAgent: '*', allow: '/' },
+    sitemap: 'https://www.DOMAIN.com/sitemap.xml',
+  }
+}
+```
+
+**sitemap.ts (MANDATORY):**
+
+```tsx
+// src/app/sitemap.ts
+import type { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl = 'https://www.DOMAIN.com'
+  return [
+    { url: baseUrl, lastModified: new Date(), priority: 1.0 },
+    { url: `${baseUrl}/services`, lastModified: new Date(), priority: 0.8 },
+    { url: `${baseUrl}/realisations`, lastModified: new Date(), priority: 0.7 },
+    { url: `${baseUrl}/a-propos`, lastModified: new Date(), priority: 0.6 },
+    { url: `${baseUrl}/contact`, lastModified: new Date(), priority: 0.8 },
+  ]
+}
+```
+
+**Schema.org JSON-LD (MANDATORY on homepage):**
+
+```tsx
+// In src/app/page.tsx
+export default function Home() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: 'Business Name',
+    telephone: '+33XXXXXXXXX',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: '...',
+      addressLocality: '...',
+      postalCode: '...',
+      addressCountry: 'FR',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: XX.XXXX,
+      longitude: XX.XXXX,
+    },
+    url: 'https://www.DOMAIN.com',
+    areaServed: '...',
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {/* Page content */}
+    </>
+  )
+}
+```
+
+**Heading hierarchy:** One `<h1>` per page, `<h2>` for sections, `<h3>` for subsections. Descriptive `alt` on ALL images.
 
 **Favicon (MANDATORY):**
 
@@ -209,40 +317,107 @@ Generate an SVG favicon using the brand accent color and the first letter of the
 </svg>
 ```
 
-Link it in every HTML page: `<link rel="icon" type="image/svg+xml" href="favicon.svg">`
+Link in layout.tsx: `icons: { icon: '/favicon.svg' }` inside the metadata export.
 
-**Image optimization (MANDATORY):**
+**Image optimization (next/image handles it):**
 
-After downloading all images, convert them to WebP using `cwebp` or `sips`:
+- Use `<Image>` from `next/image` everywhere (automatic WebP/AVIF, lazy loading, responsive sizes)
+- Set `priority` on above-the-fold images (hero, logo in navbar)
+- Always provide `width`/`height` or use `fill` with a sized container
+- Descriptive `alt` text on every image
 
-```bash
-# Try cwebp first (better quality), fallback to sips (macOS built-in)
-for img in images/*.jpg images/*.png; do
-  cwebp -q 80 "$img" -o "${img%.*}.webp" 2>/dev/null || \
-  sips -s format png "$img" --out "${img%.*}.webp" 2>/dev/null
-done
+**Static export configuration:**
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const nextConfig: NextConfig = {
+  output: 'export',
+  images: {
+    unoptimized: true, // Required for static export
+  },
+}
+
+export default nextConfig
 ```
 
-In HTML, use `<picture>` tags with WebP + JPG fallback:
+Note: With `output: 'export'`, `next/image` still provides proper `<img>` tags with `srcset` and `loading="lazy"`, but server-side optimization is disabled. Images are served as-is, so download quality photos and compress them with `cwebp` or `sips` before placing in `public/images/`.
 
-```html
-<picture>
-  <source srcset="images/hero.webp" type="image/webp">
-  <img src="images/hero.jpg" alt="Description" loading="lazy">
-</picture>
+**Scroll animations (Framer Motion):**
+
+Create a reusable `ScrollReveal` component:
+
+```tsx
+'use client'
+import { motion } from 'framer-motion'
+import { ReactNode } from 'react'
+
+export function ScrollReveal({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
 ```
 
-If neither `cwebp` nor `sips` is available, skip WebP conversion and use JPG directly — do NOT block on this.
+**Contact form:**
+
+Use a client component with form validation. The form action points to Formspree (configured post-deploy):
+
+```tsx
+'use client'
+import { useState, FormEvent } from 'react'
+
+export function ContactForm() {
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setStatus('sending')
+    const form = e.currentTarget
+    const data = new FormData(form)
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        headers: { Accept: 'application/json' },
+      })
+      if (res.ok) {
+        setStatus('sent')
+        form.reset()
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  return (
+    <form action="https://formspree.io/f/VOTRE_ID" method="POST" onSubmit={handleSubmit}>
+      {/* form fields */}
+    </form>
+  )
+}
+```
 
 **Design quality standards:**
 
 - Agency-level polish - every pixel intentional
-- Micro-interactions on buttons, links, cards (hover, focus states)
-- Scroll reveal animations
-- Consistent spacing system (8px grid)
+- Micro-interactions on buttons, links, cards (Tailwind hover/focus utilities + Framer Motion)
+- Scroll reveal animations via `ScrollReveal` component
+- Consistent spacing system (Tailwind default 4px/8px grid)
 - Real photos from the business, not placeholders
-- Custom selection colors matching the brand
-- Styled scrollbar (webkit)
+- Custom selection colors matching the brand (`::selection` in globals.css)
 
 **Copywriting rules:**
 
@@ -255,47 +430,55 @@ If neither `cwebp` nor `sips` is available, skip WebP conversion and use JPG dir
 - Use real business data (hours, address, phone, services, certifications)
 - Mark only truly missing content with [PLACEHOLDER]
 
-### Phase 5: Quality Check
+### Phase 5: Build & Quality Check
 
 After generating all files:
 
-1. Verify all internal links work between pages
-2. Open the site in the browser with `open index.html`
-3. Ensure consistent design language across all pages
-4. Verify real photos are properly displayed
-5. Check that brand colors match the original site
-6. Test navigation (mobile menu, active states)
+1. Run `npm run build` to verify the project compiles without errors
+2. Run `npx serve out` (or `npm run dev`) to preview
+3. Open the site in the browser
+4. Verify all internal links work between pages
+5. Ensure consistent design language across all pages
+6. Verify real photos are properly displayed
+7. Check that brand colors match the original site
+8. Test navigation (mobile menu, active states)
+9. Test responsive design (mobile, tablet, desktop)
 
-### Phase 6: Contact Form — Email Setup Guide
+### Phase 6: Deployment Guide
 
-After generating the site, create a `GUIDE-EMAIL.md` file at the root of the project directory with clear, beginner-friendly instructions to receive contact form submissions by email.
+After generating the site, create a `GUIDE-DEPLOY.md` file at the root of the project directory with clear, beginner-friendly instructions.
 
-**The guide MUST include these 3 options, ranked from easiest to most advanced:**
+**The guide MUST include these sections:**
 
-**Option 1 — Formspree (recommandé, 0 code)**
-1. Aller sur https://formspree.io et créer un compte gratuit
-2. Créer un nouveau formulaire → copier l'endpoint (ex: `https://formspree.io/f/xABcdEfG`)
-3. Dans `contact.html`, remplacer `action="#"` par `action="https://formspree.io/f/VOTRE_ID"`
-4. Remplacer `method="POST"` si ce n'est pas déjà le cas
-5. C'est tout — les messages arrivent par email
-- Gratuit : 50 soumissions/mois
-- Payant : illimité à partir de 10$/mois
+**1. Deployer sur Vercel (recommande, gratuit)**
+1. Aller sur https://vercel.com et connecter son compte GitHub
+2. Importer le repo
+3. Vercel detecte Next.js automatiquement — cliquer Deploy
+4. Le site est live en 30 secondes avec HTTPS et CDN mondial
+5. Chaque push sur `main` redeploy automatiquement
 
-**Option 2 — Netlify Forms (si hébergé sur Netlify)**
-1. Ajouter `netlify` dans la balise `<form>` : `<form name="contact" netlify>`
-2. Déployer sur Netlify (drag & drop du dossier)
-3. Les soumissions apparaissent dans le dashboard Netlify + notification email configurable
-- Gratuit : 100 soumissions/mois
+**2. Configurer le nom de domaine**
+1. Dans Vercel > Settings > Domains
+2. Ajouter son domaine (ex: `www.monentreprise.com`)
+3. Modifier les DNS chez son registrar (pointer vers Vercel)
+4. SSL automatique
 
-**Option 3 — EmailJS (envoi direct depuis le navigateur)**
-1. Créer un compte sur https://www.emailjs.com
-2. Connecter son email (Gmail, Outlook, etc.)
-3. Créer un template d'email
-4. Copier les 3 IDs (service, template, public key)
-5. Ajouter le script dans `contact.html` (fournir le code exact à copier-coller)
-- Gratuit : 200 emails/mois
+**3. Recevoir les emails du formulaire de contact**
+- **Option A — Formspree (0 code)**: Creer un compte sur formspree.io, copier l'endpoint, remplacer `VOTRE_ID` dans `contact-form.tsx`
+- **Option B — Netlify Forms**: Si deploye sur Netlify au lieu de Vercel
+- **Option C — EmailJS**: Envoi direct depuis le navigateur
 
-**The guide must be written in French, with screenshots-style step descriptions, and assume the reader has zero technical knowledge.**
+**4. Google Search Console**
+1. Aller sur https://search.google.com/search-console
+2. Ajouter la propriete (methode DNS ou balise HTML)
+3. Soumettre le sitemap : `https://www.DOMAIN.com/sitemap.xml`
+4. Attendre l'indexation (quelques jours)
+
+**5. Google Business Profile**
+1. Sur https://business.google.com, ajouter l'URL du site
+2. Verifier que les infos (adresse, horaires, telephone) correspondent au site
+
+**The guide must be written in French and assume the reader has zero technical knowledge.**
 
 ## Important Notes
 
@@ -308,3 +491,4 @@ After generating the site, create a `GUIDE-EMAIL.md` file at the root of the pro
 - The site should look like a 3000-5000 EUR agency deliverable.
 - All text must match the business's language and locale.
 - If the user provides a logo, use it. If not, use a text-based logo.
+- **ALWAYS use `output: 'export'`** for static generation — no server needed, deploy anywhere.
